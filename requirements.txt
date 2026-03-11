@@ -11,3 +11,5 @@ scikit-learn
 sentence-transformers
 torch
 pyautogen
+motor
+pymongo

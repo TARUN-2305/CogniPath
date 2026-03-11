@@ -1,6 +1,11 @@
-student_id,student_answer
-BIO-001,"Plants use chlorophyll to absorb sunlight. They take in CO2 and water. This makes glucose and releases oxygen."
-BIO-002,"Photosynthesis happens in the chloroplasts. Chlorophyll absorbs light energy to convert carbon dioxide and water into glucose. Oxygen is the waste product. The light reactions happen in the thylakoids."
-BIO-003,"It happens in the mitochondria. The plant uses sunlight to turn water into energy. It releases carbon dioxide."
-BIO-004,"Obviously the process takes place in the chloroplast. Light energy is captured by chlorophyll. The plant takes CO2 from the air and water from the soil to make sugar (glucose). Oxygen is released. The Calvin cycle occurs in the stroma."
-BIO-005,"Sunlight hits the chlorophyll in the chloroplast. This powers the conversion of CO2 and H2O into glucose. O2 is a byproduct. The light dependent reactions occur in the thylakoid membranes."
+student_id,question_id,answer
+BIO-001,photo-1,"Plants use chlorophyll to absorb sunlight. They take in CO2 and water. This makes glucose and releases oxygen."
+BIO-001,photo-2,"Light reactions happen in the thylakoid membrane. Calvin cycle happens in the stroma."
+BIO-002,photo-1,"Photosynthesis happens in the chloroplasts. Chlorophyll absorbs light energy to convert carbon dioxide and water into glucose. Oxygen is the waste product."
+BIO-002,photo-2,"The light-dependent reactions occur in the thylakoid. The Calvin cycle happens in the stroma of the chloroplast."
+BIO-003,photo-1,"It happens in the mitochondria. The plant uses sunlight to turn water into energy. It releases carbon dioxide."
+BIO-003,photo-2,"All the reactions happen in the nucleus. ATP is produced in the cytoplasm."
+BIO-004,photo-1,"Obviously the process takes place in the chloroplast. Light energy is captured by chlorophyll. The plant takes CO2 from the air and water from the soil to make sugar (glucose). Oxygen is released. The Calvin cycle occurs in the stroma."
+BIO-004,photo-2,"Light-dependent reactions are in the thylakoid. The Calvin cycle is in the stroma."
+BIO-005,photo-1,"Sunlight hits the chlorophyll in the chloroplast. This powers the conversion of CO2 and H2O into glucose. O2 is a byproduct."
+BIO-005,photo-2,"Light reactions occur in the thylakoid membrane and are responsible for producing ATP and NADPH. Calvin cycle occurs in the stroma."

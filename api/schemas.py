@@ -45,18 +45,32 @@ class IEMSPCResponse(BaseModel):
 class IEMMSAResponse(BaseModel):
     kappa: float
 
-class TestCreationRequest(BaseModel):
-    question_id: str
+# --- Teacher / Pre-Evaluation Schemas ---
+class TestQuestion(BaseModel):
+    question_id: str                       # e.g. "photo-1", "photo-2"
     question: str
     ground_truth: str
     expected_format: str
     enable_math_validation: bool = True
     enable_logic_validation: bool = True
 
+class TestCreationRequest(BaseModel):
+    test_id: str                           # e.g. "biology-unit2"
+    subject: str                           # e.g. "Biology"
+    questions: List[TestQuestion]          # unlimited questions
+
 class BatchStudentAnswer(BaseModel):
     student_id: str
+    question_id: str                       # which question in this test
     student_answer: str
 
-class BatchSubmissionCSV(BaseModel):
-    question_id: str
+class BatchSubmissionRequest(BaseModel):
+    test_id: str
     answers: List[BatchStudentAnswer]
+
+class KGNode(BaseModel):
+    node_id: str
+    label: str
+    description: Optional[str] = None
+    node_type: str = "concept"             # concept | relation
+
