@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pydantic
+networkx
+transformers
+sympy
+pandas
+scipy
+matplotlib
+scikit-learn
+sentence-transformers
+torch
+pyautogen
