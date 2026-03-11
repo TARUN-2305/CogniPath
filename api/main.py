@@ -1,15 +1,14 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import json
+import json, os
 
-# --- Import CS Core Modules ---
-# Assuming you have these wrapper functions in your cs_core modules
+# --- CS Core ---
 from cs_core.debate_room import run_grading_debate
-# from cs_core.extractor import extract_reasoning_path
-# from cs_core.validator import StepValidator
+from cs_core.extractor import get_extractor
+from cs_core.bluff_detector import PathAwareBluffDetector
 
-# --- Import IEM Modules ---
+# --- IEM ---
 from api.iem_routes import router as iem_router
 from iem_qa.fmea import calculate_fmea_rpn
 
@@ -17,8 +16,102 @@ from iem_qa.fmea import calculate_fmea_rpn
 app = FastAPI(
     title="CogniPath XAI Backend",
     description="Interdisciplinary AI Grading & IEM Quality Assurance System",
-    version="1.0.0"
+    version="2.0.0",
 )
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+from api.teacher_routes import router as teacher_router
+
+app.include_router(iem_router)
+app.include_router(teacher_router, prefix="/api/teacher")
+
+# --- Singletons (initialised once at startup) ---
+_bluff_detector = PathAwareBluffDetector()
+
+class StudentSubmission(BaseModel):
+    student_id: str
+    question_id: str
+    question: str
+    student_answer: str
+    domain: str = "general"
+
+# ---------------------------------------------------------------------------
+# Master Evaluation Endpoint
+# ---------------------------------------------------------------------------
+@app.post("/api/evaluate", tags=["Core CS Architecture"])
+async def evaluate_student_answer(submission: StudentSubmission):
+    try:
+        extractor = get_extractor()
+
+        # STEP 1: Extract Reasoning Path (Tree of Thought)
+        reasoning_path_response = extractor.extract(
+            question=submission.question,
+            student_answer=submission.student_answer,
+            domain=submission.domain,
+        )
+        # Serialisable list of step dicts for downstream agents
+        reasoning_path = [s.dict() for s in reasoning_path_response.steps]
+
+        # STEP 2: Validate Steps (NLI & SymPy) — stub; real validator below
+        mock_validation_data = {
+            "path_id": submission.question_id,
+            "is_valid": True,
+            "bluff_score": 0.05,
+            "error_type": None,
+        }
+
+        # STEP 3: Multi-Agent Debate (KT-PSP)
+        final_judgment_json = run_grading_debate(
+            question=submission.question,
+            reasoning_path=reasoning_path,
+            validation_data=mock_validation_data,
+        )
+        final_judgment = json.loads(final_judgment_json) if final_judgment_json else {}
+
+        # STEP 4: Path-Aware Bluff Detection
+        bluff_result = _bluff_detector.detect(
+            reasoning_path=reasoning_path_response,
+            student_answer=submission.student_answer,
+        )
+
+        # STEP 5: IEM FMEA if an error was detected
+        fmea_report = None
+        if final_judgment.get("primary_error_type"):
+            fmea_report = calculate_fmea_rpn([{"type": final_judgment["primary_error_type"]}])
+
+        # STEP 6: Return combined payload
+        return {
+            "student_id": submission.student_id,
+            "status": "success",
+            "cognitive_map": {
+                "nodes": reasoning_path,
+                "validation": mock_validation_data,
+                "thought_tree": reasoning_path_response.thought_tree.dict() if reasoning_path_response.thought_tree else None,
+                "extraction_metadata": reasoning_path_response.metadata,
+            },
+            "bluff_assessment": bluff_result,
+            "grading_results": final_judgment,
+            "iem_triggers": {
+                "fmea_generated": bool(fmea_report),
+                "fmea_data": fmea_report,
+            },
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/")
+async def root():
+    return {"message": "CogniPath API v2.0 — ToT Extractor + Bluff Detector active."}
+
 
 # --- CORS Configuration for Next.js ---
 app.add_middleware(

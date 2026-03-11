@@ -13,9 +13,31 @@ class ReasoningStep(BaseModel):
     type: str
     confidence: float
 
+class ThoughtNode(BaseModel):
+    """A single node in the beam-search thought tree."""
+    node_id: str
+    step_num: int
+    text: str
+    type: str
+    confidence: float
+    path_score: float
+    is_selected: bool = False        # True if this node is on the best path
+    is_validated: Optional[bool] = None
+    error_type: Optional[str] = None
+    bluff_score: float = 0.0
+    children: List[str] = []         # list of node_ids of child nodes
+
+class ThoughtTree(BaseModel):
+    """Full beam-search thought tree returned by the extractor."""
+    root_id: str
+    nodes: Dict[str, ThoughtNode]    # node_id → ThoughtNode
+    best_path_ids: List[str]         # ordered list of node_ids on the best path
+
 class ReasoningPathResponse(BaseModel):
     path_id: str
     steps: List[ReasoningStep]
+    thought_tree: Optional[ThoughtTree] = None
+    metadata: Dict = {}
 
 class ValidationResponse(BaseModel):
     path_id: str

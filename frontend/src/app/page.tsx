@@ -1,11 +1,17 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { UploadCloud, Layers, LineChart, Cpu, FileCheck, BookOpen } from 'lucide-react';
 import { CognitiveMap } from '../components/flow/CognitiveMap';
 import { SPCChart } from '../components/iem/SPCChart';
 import { FMEADataGrid, FMEAError } from '../components/iem/FMEADataGrid';
 import SyllabusDropzone from '../components/teacher/SyllabusDropzone';
 import TestBuilderForm from '../components/teacher/TestBuilderForm';
+
+const ToTVisualizer = dynamic(
+  () => import('../components/flow/ToTVisualizer').then(m => ({ default: m.ToTVisualizer })),
+  { ssr: false }
+);
 
 // Mock fetching the backend data
 const fetchSPC = async () => {
@@ -34,6 +40,7 @@ const fetchFMEA = async (): Promise<FMEAError[]> => {
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'individual' | 'iem' | 'teacher'>('teacher');
+  const [viewMode, setViewMode] = useState<'cognitive' | 'tot'>('cognitive');
   const [spcData, setSpcData] = useState<any>(null);
   const [fmeaData, setFmeaData] = useState<FMEAError[]>([]);
 
@@ -158,13 +165,12 @@ export default function Dashboard() {
 
           {activeTab === 'individual' && (
             <div className="max-w-6xl mx-auto space-y-6">
+              {/* Student selector card */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-start gap-4">
                 <FileCheck className="w-6 h-6 text-indigo-500 mt-1" />
-                <div>
+                <div className="flex-1">
                   <div className="flex items-center gap-4">
-                    <h3 className="font-semibold text-gray-900">
-                      Student ID:
-                    </h3>
+                    <h3 className="font-semibold text-gray-900">Student ID:</h3>
                     <select
                       value={selectedStudent}
                       onChange={(e) => setSelectedStudent(e.target.value)}
@@ -183,7 +189,31 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <CognitiveMap studentId={selectedStudent} />
+              {/* View mode toggle */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setViewMode('cognitive')}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${viewMode === 'cognitive'
+                      ? 'bg-indigo-600 text-white shadow'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300'
+                    }`}
+                >
+                  🧠 Best Path (Cognitive Map)
+                </button>
+                <button
+                  onClick={() => setViewMode('tot')}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${viewMode === 'tot'
+                      ? 'bg-indigo-600 text-white shadow'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300'
+                    }`}
+                >
+                  🌳 Reasoning Explorer (Tree of Thoughts)
+                </button>
+              </div>
+
+              {/* Graph panels */}
+              {viewMode === 'cognitive' && <CognitiveMap studentId={selectedStudent} />}
+              {viewMode === 'tot' && <ToTVisualizer studentId={selectedStudent} />}
             </div>
           )}
 
